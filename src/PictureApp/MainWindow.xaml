@@ -1,0 +1,188 @@
+<Window x:Class="PictureApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PictureApp"
+        Width="1100"
+        Height="720"
+        MinWidth="520"
+        MinHeight="380"
+        WindowStartupLocation="CenterScreen"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        Background="Transparent"
+        AllowDrop="True"
+        Drop="OnDrop"
+        DragOver="OnDragOver"
+        KeyDown="OnKeyDown"
+        MouseWheel="OnMouseWheel"
+        StateChanged="OnStateChanged"
+        Loaded="OnLoaded">
+
+    <!-- Внешний контейнер: тень + скругление окна. Margin = поле под тень -->
+    <Border x:Name="OuterBorder"
+            Margin="16"
+            CornerRadius="14"
+            Background="{StaticResource WindowChromeBrush}"
+            SnapsToDevicePixels="True">
+        <Border.Effect>
+            <DropShadowEffect Color="#000000"
+                              Opacity="0.35"
+                              BlurRadius="22"
+                              ShadowDepth="0" />
+        </Border.Effect>
+
+        <Grid x:Name="RootGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Шапка окна: перетаскивание + закрыть/свернуть/развернуть -->
+            <Grid Grid.Row="0" Background="Transparent" MouseLeftButtonDown="OnTitleBarMouseDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="TitleText"
+                           Grid.Column="0"
+                           Margin="14,0,0,0"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           Foreground="#88000000"
+                           Text="PictureApp"
+                           IsHitTestVisible="False" />
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
+                    <Button x:Name="MinimizeButton"
+                            Width="28" Height="24"
+                            Margin="2,0"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            Foreground="#AA000000"
+                            FontSize="14"
+                            Cursor="Hand"
+                            Focusable="False"
+                            ToolTip="Свернуть"
+                            Click="OnMinimizeClick">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="4">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="b" Property="Background" Value="#33000000" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        ‒
+                    </Button>
+                    <Button x:Name="MaximizeButton"
+                            Width="28" Height="24"
+                            Margin="2,0"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            Foreground="#AA000000"
+                            FontSize="12"
+                            Cursor="Hand"
+                            Focusable="False"
+                            ToolTip="Развернуть"
+                            Click="OnMaximizeClick">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="4">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="b" Property="Background" Value="#33000000" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        ☐
+                    </Button>
+                    <Button x:Name="CloseButton"
+                            Width="28" Height="24"
+                            Margin="2,0"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            Foreground="#CC000000"
+                            FontSize="12"
+                            Cursor="Hand"
+                            Focusable="False"
+                            ToolTip="Закрыть"
+                            Click="OnCloseClick">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="4">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="b" Property="Background" Value="#E81123" />
+                                        <Setter Property="Foreground" Value="White" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        ✕
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Контент: левая стрелка | картинка | правая стрелка -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="72" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="72" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Левая стрелка -->
+                <Button x:Name="PrevButton"
+                        Grid.Column="0"
+                        Style="{StaticResource NavButtonStyle}"
+                        ToolTip="Предыдущее изображение (←)"
+                        Click="OnPrevClick"
+                        Content="‹" />
+
+                <!-- Карточка с картинкой / плейсхолдер -->
+                <Border Grid.Column="1"
+                        x:Name="ImageCard"
+                        Margin="8"
+                        CornerRadius="14"
+                        Background="#FFFFFFFF"
+                        BorderBrush="#552B2B2B"
+                        BorderThickness="1.5"
+                        SnapsToDevicePixels="True"
+                        ClipToBounds="True"
+                        MouseLeftButtonDown="OnImageMouseLeftButtonDown">
+                    <Grid>
+                        <Image x:Name="ImageView"
+                               Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="Fant"
+                               RenderOptions.EdgeMode="Unspecified" />
+                        <TextBlock x:Name="PlaceholderText"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="32"
+                                   FontWeight="Bold"
+                                   Foreground="#FF1F1F1F"
+                                   Text="Картинка" />
+                    </Grid>
+                </Border>
+
+                <!-- Правая стрелка -->
+                <Button x:Name="NextButton"
+                        Grid.Column="2"
+                        Style="{StaticResource NavButtonStyle}"
+                        ToolTip="Следующее изображение (→)"
+                        Click="OnNextClick"
+                        Content="›" />
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

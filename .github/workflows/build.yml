@@ -1,0 +1,55 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore PictureApp.sln
+
+      - name: Build (Release)
+        run: dotnet build PictureApp.sln -c Release --no-restore
+
+      - name: Publish single-file exe
+        shell: pwsh
+        run: |
+          $out = "publish/PictureApp"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Copy-Item "src/PictureApp/bin/Release/net48/PictureApp.exe" "$out/"
+          Copy-Item "src/PictureApp/bin/Release/net48/PictureApp.exe.config" "$out/" -ErrorAction SilentlyContinue
+          Copy-Item "README.md" "$out/" -ErrorAction SilentlyContinue
+          Compress-Archive -Path "$out/*" -DestinationPath "publish/PictureApp.zip" -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PictureApp-${{ github.sha }}
+          path: |
+            publish/PictureApp.zip
+            src/PictureApp/bin/Release/net48/PictureApp.exe
+
+      - name: Attach exe to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            publish/PictureApp.zip
+            src/PictureApp/bin/Release/net48/PictureApp.exe
